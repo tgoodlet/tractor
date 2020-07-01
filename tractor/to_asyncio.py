@@ -13,10 +13,13 @@ from typing import (
 
 import trio
 
+from .log import get_logger
 from ._state import current_actor
 
+log = get_logger(__name__)
 
-__all__ = ['run']
+
+__all__ = ['run_task']
 
 
 async def _invoke(
@@ -40,7 +43,7 @@ async def _invoke(
         return await coro
 
 
-async def run(
+async def run_task(
     func: Callable,
     qsize: int = 2**10,
     **kwargs,
@@ -97,3 +100,51 @@ async def run(
                 raise err
 
     return result()
+
+
+def run_as_asyncio_guest(
+    trio_main: Awaitable,
+) -> None:
+    """Entry for an "infected ``asyncio`` actor".
+
+    Uh, oh. :o
+
+    It looks like your event loop has caught a case of the ``trio``s.
+
+    :()
+
+    Don't worry, we've heard you'll barely notice. You might hallucinate
+    a few more propagating errors and feel like your digestion has
+    slowed but if anything get's too bad your parents will know about
+    it.
+
+    :)
+    """
+    async def aio_main(trio_main):
+        loop = asyncio.get_running_loop()
+
+        trio_done_fut = asyncio.Future()
+
+        def trio_done_callback(main_outcome):
+            log.info(f"trio_main finished: {main_outcome!r}")
+            trio_done_fut.set_result(main_outcome)
+
+        # start the infection: run trio on the asyncio loop in "guest mode"
+        log.info(f"Infecting asyncio process with {trio_main}")
+        trio.lowlevel.start_guest_run(
+            trio_main,
+            run_sync_soon_threadsafe=loop.call_soon_threadsafe,
+            done_callback=trio_done_callback,
+        )
+
+        (await trio_done_fut).unwrap()
+
+    # might as well if it's installed.
+    try:
+        import uvloop
+        loop = uvloop.new_event_loop()
+        asyncio.set_event_loop(loop)
+    except ImportError:
+        pass
+
+    asyncio.run(aio_main(trio_main))

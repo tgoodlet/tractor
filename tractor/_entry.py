@@ -9,6 +9,7 @@ import trio  # type: ignore
 
 from .log import get_console_log, get_logger
 from . import _state
+from .to_asyncio import run_as_asyncio_guest
 
 
 log = get_logger(__name__)
@@ -45,7 +46,11 @@ def _mp_main(
         parent_addr=parent_addr
     )
     try:
-        trio.run(trio_main)
+        if infect_asyncio:
+            actor._infected_aio = True
+            run_as_asyncio_guest(trio_main)
+        else:
+            trio.run(trio_main)
     except KeyboardInterrupt:
         pass  # handle it the same way trio does?
 
