@@ -41,9 +41,11 @@ def stream(func):
     """
     func._tractor_stream_function = True
     sig = inspect.signature(func)
-    if 'ctx' not in sig.parameters:
+    params = sig.parameters
+    if 'ctx' not in params and 'to_trio' not in params:
         raise TypeError(
             "The first argument to the stream function "
-            f"{func.__name__} must be `ctx: tractor.Context`"
+            f"{func.__name__} must be `ctx: tractor.Context` "
+            "(Or ``to_trio`` if using ``asyncio`` in guest mode)."
         )
     return func
