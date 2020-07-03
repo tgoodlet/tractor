@@ -235,6 +235,9 @@ class Actor:
     _parent_main_data: Dict[str, str]
     _parent_chan_cs: Optional[trio.CancelScope] = None
 
+    # if started on ``asycio`` running ``trio`` in guest mode
+    _infected_aio: bool = False
+
     def __init__(
         self,
         name: str,
@@ -1068,6 +1071,8 @@ class Actor:
         log.info(f"Handshake with actor {uid}@{chan.raddr} complete")
         return uid
 
+    def is_infected_aio(self) -> bool:
+        return self._infected_aio
 
 class Arbiter(Actor):
     """A special actor who knows all the other actors and always has
