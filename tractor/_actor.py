@@ -1074,6 +1074,7 @@ class Actor:
     def is_infected_aio(self) -> bool:
         return self._infected_aio
 
+
 class Arbiter(Actor):
     """A special actor who knows all the other actors and always has
     access to a top level nursery.
