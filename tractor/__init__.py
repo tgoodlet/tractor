@@ -13,6 +13,7 @@ from ._exceptions import RemoteActorError, ModuleNotExposed
 from ._debug import breakpoint, post_mortem
 from . import msg
 from ._root import run, run_daemon, open_root_actor
+from . import to_asyncio
 
 
 __all__ = [
@@ -33,7 +34,6 @@ __all__ = [
     'run',
     'run_daemon',
     'stream',
-    'wait_for_actor',
     'to_asyncio',
     'wait_for_actor',
 ]
