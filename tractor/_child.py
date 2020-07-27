@@ -19,12 +19,15 @@ def parse_ipaddr(arg):
     return (str(host), int(port))
 
 
+from ._entry import _trio_main
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--uid", type=parse_uid)
     parser.add_argument("--loglevel", type=str)
     parser.add_argument("--parent_addr", type=parse_ipaddr)
+    parser.add_argument("--asyncio", action='store_true')
     args = parser.parse_args()
 
     subactor = Actor(
@@ -36,5 +39,6 @@ if __name__ == "__main__":
 
     _trio_main(
         subactor,
-        parent_addr=args.parent_addr
+        parent_addr=args.parent_addr,
+        infect_asyncio=args.asyncio,
     )
