@@ -94,6 +94,8 @@ async def run_task(
         """
         nonlocal err
         err = task.exception()
+        if err:
+            log.exception("asyncio task errorred:")
         cancel_scope.cancel()
 
     task.add_done_callback(cancel_trio)
