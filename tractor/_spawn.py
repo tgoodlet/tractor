@@ -34,18 +34,17 @@ log = get_logger('tractor')
 
 # placeholder for an mp start context if so using that backend
 _ctx: Optional[mp.context.BaseContext] = None
-_spawn_method: str = "spawn"
+_spawn_method: str = "trio"
 
 
 if platform.system() == 'Windows':
-    _spawn_method = "spawn"
+
     _ctx = mp.get_context("spawn")
 
     async def proc_waiter(proc: mp.Process) -> None:
         await trio.lowlevel.WaitForSingleObject(proc.sentinel)
 else:
-    # *NIX systems use ``trio`` primitives as our default
-    _spawn_method = "trio"
+    # *NIX systems use ``trio`` primitives as our default as well
 
     async def proc_waiter(proc: mp.Process) -> None:
         await trio.lowlevel.wait_readable(proc.sentinel)
