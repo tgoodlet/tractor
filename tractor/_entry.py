@@ -62,7 +62,7 @@ def _trio_main(
     """
     # Disable sigint handling in children;
     # we don't need it thanks to our cancellation machinery.
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    # signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     log.info(f"Started new trio process for {actor.uid}")
 
