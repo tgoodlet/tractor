@@ -248,6 +248,7 @@ def _breakpoint(debug_func) -> Awaitable[None]:
             # may have the tty locked prior
             if _debug_lock.locked():  # root process already has it; ignore
                 return
+
             await _debug_lock.acquire()
             _pdb_release_hook = _debug_lock.release
 
