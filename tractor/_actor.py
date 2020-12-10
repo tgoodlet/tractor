@@ -871,6 +871,7 @@ class Actor:
         Schedules `.cancel()` to be run immediately just like when
         cancelled by the parent.
         """
+        assert self._service_n
         self._service_n.start_soon(self.cancel)
 
     async def cancel(self) -> bool:
