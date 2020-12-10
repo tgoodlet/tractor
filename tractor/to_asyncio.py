@@ -8,7 +8,6 @@ from typing import (
     Callable,
     AsyncIterator,
     Awaitable,
-    Union,
 )
 
 import trio
@@ -91,10 +90,12 @@ async def run_task(
     def cancel_trio(task):
         """Cancel the calling ``trio`` task on error.
         """
-        nonlocal err
+        nonlocal aio_err
         aio_err = task.exception()
+
         if aio_err:
             log.exception(f"asyncio task errorred:\n{aio_err}")
+
         cancel_scope.cancel()
 
     task.add_done_callback(cancel_trio)
@@ -109,6 +110,12 @@ async def run_task(
                     async with from_aio:
                         async for item in from_aio:
                             yield item
+
+                if cancel_scope.cancelled_caught:
+                    # always raise from any captured asyncio error
+                    if aio_err:
+                        raise aio_err
+
             except BaseException as err:
                 if aio_err is not None:
                     # always raise from any captured asyncio error
@@ -123,6 +130,11 @@ async def run_task(
         with cancel_scope:
             # return single value
             return await from_aio.receive()
+
+        if cancel_scope.cancelled_caught:
+            # always raise from any captured asyncio error
+            if aio_err:
+                raise aio_err
 
     # Do we need this?
     except BaseException as err:
