@@ -305,7 +305,7 @@ class Actor:
         self._parent_chan: Optional[Channel] = None
         self._forkserver_info: Optional[
             Tuple[Any, Any, Any, Any, Any]] = None
-        self._actoruid2nursery: Dict[str, 'ActorNursery'] = {}  # type: ignore
+        self._actoruid2nursery: Dict[str, 'ActorNursery'] = {}  # type: ignore # noqa
 
     async def wait_for_peer(
         self, uid: Tuple[str, str]
