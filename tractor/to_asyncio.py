@@ -164,16 +164,19 @@ def run_as_asyncio_guest(
     :)
     """
     async def aio_main(trio_main):
+
         loop = asyncio.get_running_loop()
 
         trio_done_fut = asyncio.Future()
 
         def trio_done_callback(main_outcome):
+
             log.info(f"trio_main finished: {main_outcome!r}")
             trio_done_fut.set_result(main_outcome)
 
         # start the infection: run trio on the asyncio loop in "guest mode"
         log.info(f"Infecting asyncio process with {trio_main}")
+
         trio.lowlevel.start_guest_run(
             trio_main,
             run_sync_soon_threadsafe=loop.call_soon_threadsafe,
