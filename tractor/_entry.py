@@ -73,8 +73,6 @@ def _trio_main(
 
     log.info(f"Started new trio process for {actor.uid}")
 
-    log.info(f"Started new trio process for {actor.uid}")
-
     if actor.loglevel is not None:
         log.info(
             f"Setting loglevel for {actor.uid} to {actor.loglevel}")
