@@ -94,7 +94,7 @@ def test_rpc_errors(arb_addr, to_call, testdir):
                 func_name=funcname,
                 exposed_mods=exposed_mods,
                 func_defined=True if func_defined else False,
-                rpc_module_paths=subactor_exposed_mods,
+                enable_modules=subactor_exposed_mods,
             )
 
     def run():

@@ -182,7 +182,7 @@ Here is a similar example using the latter method:
 
 .. literalinclude:: ../examples/actor_spawning_and_causality_with_daemon.py
 
-The ``rpc_module_paths`` `kwarg` above is a list of module path
+The ``enable_modules`` `kwarg` above is a list of module path
 strings that will be loaded and made accessible for execution in the
 remote actor through a call to ``Portal.run()``. For now this is
 a simple mechanism to restrict the functionality of the remote

@@ -22,7 +22,7 @@ async def main():
 
             portal = await n.start_actor(
                 'donny',
-                rpc_module_paths=[__name__],
+                enable_modules=[__name__],
             )
 
             # this async for loop streams values from the above

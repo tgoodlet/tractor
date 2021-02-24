@@ -17,7 +17,7 @@ async def main():
         portal = await n.start_actor(
             'frank',
             # enable the actor to run funcs from this current module
-            rpc_module_paths=[__name__],
+            enable_modules=[__name__],
         )
 
         print(await portal.run(movie_theatre_question))

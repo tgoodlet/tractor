@@ -12,7 +12,7 @@ async def main():
         for i in range(3):
             real_actors.append(await n.start_actor(
                 f'actor_{i}',
-                rpc_module_paths=[__name__],
+                enable_modules=[__name__],
             ))
 
         # start one actor that will fail immediately
