@@ -47,7 +47,9 @@ def test_remote_error(arb_addr, args_err):
     args, errtype = args_err
 
     async def main():
-        async with tractor.open_nursery() as nursery:
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+        ) as nursery:
 
             portal = await nursery.run_in_actor(
                 assert_err, name='errorer', **args
@@ -62,7 +64,7 @@ def test_remote_error(arb_addr, args_err):
                 raise
 
     with pytest.raises(tractor.RemoteActorError) as excinfo:
-        tractor.run(main, arbiter_addr=arb_addr)
+        trio.run(main)
 
     # ensure boxed error is correct
     assert excinfo.value.type == errtype
@@ -73,7 +75,9 @@ def test_multierror(arb_addr):
     more then one actor errors.
     """
     async def main():
-        async with tractor.open_nursery() as nursery:
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+        ) as nursery:
 
             await nursery.run_in_actor(assert_err, name='errorer1')
             portal2 = await nursery.run_in_actor(assert_err, name='errorer2')
@@ -90,7 +94,7 @@ def test_multierror(arb_addr):
         # from both subactors
 
     with pytest.raises(trio.MultiError):
-        tractor.run(main, arbiter_addr=arb_addr)
+        trio.run(main)
 
 
 @pytest.mark.parametrize('delay', (0, 0.5))
@@ -103,7 +107,10 @@ def test_multierror_fast_nursery(arb_addr, start_method, num_subactors, delay):
     to test failure during an ongoing spawning.
     """
     async def main():
-        async with tractor.open_nursery() as nursery:
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+        ) as nursery:
+
             for i in range(num_subactors):
                 await nursery.run_in_actor(
                     assert_err,
@@ -112,7 +119,7 @@ def test_multierror_fast_nursery(arb_addr, start_method, num_subactors, delay):
                 )
 
     with pytest.raises(trio.MultiError) as exc_info:
-        tractor.run(main, arbiter_addr=arb_addr)
+        trio.run(main)
 
     assert exc_info.type == tractor.MultiError
     err = exc_info.value
@@ -134,10 +141,12 @@ def test_cancel_single_subactor(arb_addr, mechanism):
     async def spawn_actor():
         """Spawn an actor that blocks indefinitely.
         """
-        async with tractor.open_nursery() as nursery:
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+        ) as nursery:
 
             portal = await nursery.start_actor(
-                'nothin', rpc_module_paths=[__name__],
+                'nothin', enable_modules=[__name__],
             )
             assert (await portal.run(do_nothing)) is None
 
@@ -148,10 +157,10 @@ def test_cancel_single_subactor(arb_addr, mechanism):
                 raise mechanism
 
     if mechanism == 'nursery_cancel':
-        tractor.run(spawn_actor, arbiter_addr=arb_addr)
+        trio.run(spawn_actor)
     else:
         with pytest.raises(mechanism):
-            tractor.run(spawn_actor, arbiter_addr=arb_addr)
+            trio.run(spawn_actor)
 
 
 async def stream_forever():
@@ -229,7 +238,7 @@ async def test_some_cancels_all(num_actors_and_errs, start_method, loglevel):
             for i in range(num_actors):
                 dactor_portals.append(await n.start_actor(
                     f'deamon_{i}',
-                    rpc_module_paths=[__name__],
+                    enable_modules=[__name__],
                 ))
 
             func, kwargs = ria_func
@@ -395,7 +404,7 @@ def test_cancel_via_SIGINT(
                 await trio.sleep_forever()
 
     with pytest.raises(KeyboardInterrupt):
-        tractor.run(main)
+        trio.run(main)
 
 
 @no_windows
@@ -430,8 +439,7 @@ def test_cancel_via_SIGINT_other_task(
                 os.kill(pid, signal.SIGINT)
 
     with pytest.raises(KeyboardInterrupt):
-        tractor.run(main)
-
+        trio.run(main)
 
 async def spin_for(period=3):
     "Sync sleep."
@@ -470,4 +478,4 @@ def test_cancel_while_childs_child_in_sync_sleep(
                 assert 0
 
     with pytest.raises(AssertionError):
-        tractor.run(main)
+        trio.run(main)
