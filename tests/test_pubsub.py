@@ -46,8 +46,9 @@ async def pubber(get_topics, seed=10):
 
 
 async def subs(
-    which, pub_actor_name, seed=10,
-    portal=None,
+    which,
+    pub_actor_name,
+    seed=10,
     task_status=trio.TASK_STATUS_IGNORED,
 ):
     if len(which) == 1:
@@ -61,7 +62,9 @@ async def subs(
             return isinstance(i, int)
 
     # TODO: https://github.com/goodboy/tractor/issues/207
-    async with tractor.find_actor(pub_actor_name) as portal:
+    async with tractor.wait_for_actor(pub_actor_name) as portal:
+        assert portal
+
         async with portal.open_stream_from(
             pubber,
             topics=which,
@@ -164,7 +167,11 @@ def test_multi_actor_subs_arbiter_pub(
 
     async def main():
 
-        async with tractor.open_nursery() as n:
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+            enable_modules=[__name__],
+            debug_mode=True,
+        ) as n:
 
             name = 'root'
 
@@ -172,7 +179,7 @@ def test_multi_actor_subs_arbiter_pub(
                 # start the publisher as a daemon
                 master_portal = await n.start_actor(
                     'streamer',
-                    rpc_module_paths=[__name__],
+                    enable_modules=[__name__],
                 )
 
             even_portal = await n.run_in_actor(
@@ -242,11 +249,7 @@ def test_multi_actor_subs_arbiter_pub(
             else:
                 await master_portal.cancel_actor()
 
-    tractor.run(
-        main,
-        arbiter_addr=arb_addr,
-        rpc_module_paths=[__name__],
-    )
+    trio.run(main)
 
 
 def test_single_subactor_pub_multitask_subs(
@@ -255,11 +258,14 @@ def test_single_subactor_pub_multitask_subs(
 ):
     async def main():
 
-        async with tractor.open_nursery() as n:
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+            enable_modules=[__name__],
+        ) as n:
 
             portal = await n.start_actor(
                 'streamer',
-                rpc_module_paths=[__name__],
+                enable_modules=[__name__],
             )
             async with tractor.wait_for_actor('streamer'):
                 # block until 2nd actor is initialized
@@ -283,8 +289,4 @@ def test_single_subactor_pub_multitask_subs(
 
             await portal.cancel_actor()
 
-    tractor.run(
-        main,
-        arbiter_addr=arb_addr,
-        rpc_module_paths=[__name__],
-    )
+    trio.run(main)
