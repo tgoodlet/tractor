@@ -170,7 +170,6 @@ def test_multi_actor_subs_arbiter_pub(
         async with tractor.open_nursery(
             arbiter_addr=arb_addr,
             enable_modules=[__name__],
-            debug_mode=True,
         ) as n:
 
             name = 'root'
