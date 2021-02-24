@@ -113,6 +113,7 @@ class ActorNursery:
         name: Optional[str] = None,
         bind_addr: Tuple[str, int] = _default_bind_addr,
         rpc_module_paths: Optional[List[str]] = None,
+        enable_modules: List[str] = None,
         loglevel: str = None,  # set log level per subactor
         **kwargs,  # explicit args to ``fn``
     ) -> Portal:
@@ -131,7 +132,7 @@ class ActorNursery:
 
         portal = await self.start_actor(
             name,
-            rpc_module_paths=[mod_path] + (rpc_module_paths or []),
+            enable_modules=[mod_path] + (enable_modules or rpc_module_paths or []),
             bind_addr=bind_addr,
             loglevel=loglevel,
             # use the run_in_actor nursery
