@@ -1,10 +1,11 @@
 """
-Multiple python programs invoking ``tractor.run()``
+Multiple python programs invoking the runtime.
 """
 import platform
 import time
 
 import pytest
+import trio
 import tractor
 from conftest import (
     tractor_test,
@@ -45,8 +46,13 @@ async def test_cancel_remote_arbiter(daemon, arb_addr):
 def test_register_duplicate_name(daemon, arb_addr):
 
     async def main():
-        assert not tractor.current_actor().is_arbiter
-        async with tractor.open_nursery() as n:
+
+        async with tractor.open_nursery(
+            arbiter_addr=arb_addr,
+        ) as n:
+
+            assert not tractor.current_actor().is_arbiter
+
             p1 = await n.start_actor('doggy')
             p2 = await n.start_actor('doggy')
 
@@ -57,4 +63,4 @@ def test_register_duplicate_name(daemon, arb_addr):
 
     # run it manually since we want to start **after**
     # the other "daemon" program
-    tractor.run(main, arbiter_addr=arb_addr)
+    trio.run(main)
