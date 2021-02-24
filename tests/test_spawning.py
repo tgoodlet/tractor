@@ -1,7 +1,6 @@
 """
 Spawning basics
 """
-from functools import partial
 
 import pytest
 import trio
@@ -12,41 +11,50 @@ from conftest import tractor_test
 data_to_pass_down = {'doggy': 10, 'kitty': 4}
 
 
-async def spawn(is_arbiter, data):
+async def spawn(is_arbiter, data, arb_addr):
     namespaces = [__name__]
 
     await trio.sleep(0.1)
-    actor = tractor.current_actor()
-    assert actor.is_arbiter == is_arbiter
-    data == data_to_pass_down
 
-    if actor.is_arbiter:
-        async with tractor.open_nursery() as nursery:
-            # forks here
-            portal = await nursery.run_in_actor(
-                spawn,
-                is_arbiter=False,
-                name='sub-actor',
-                data=data,
-                rpc_module_paths=namespaces,
-            )
+    async with tractor.open_root_actor(
+        arbiter_addr=arb_addr,
+    ):
 
-            assert len(nursery._children) == 1
-            assert portal.channel.uid in tractor.current_actor()._peers
-            # be sure we can still get the result
-            result = await portal.result()
-            assert result == 10
-            return result
-    else:
-        return 10
+        actor = tractor.current_actor()
+        assert actor.is_arbiter == is_arbiter
+        data = data_to_pass_down
+
+        if actor.is_arbiter:
+
+            async with tractor.open_nursery(
+            ) as nursery:
+
+                # forks here
+                portal = await nursery.run_in_actor(
+                    spawn,
+                    is_arbiter=False,
+                    name='sub-actor',
+                    data=data,
+                    arb_addr=arb_addr,
+                    enable_modules=namespaces,
+                )
+
+                assert len(nursery._children) == 1
+                assert portal.channel.uid in tractor.current_actor()._peers
+                # be sure we can still get the result
+                result = await portal.result()
+                assert result == 10
+                return result
+        else:
+            return 10
 
 
 def test_local_arbiter_subactor_global_state(arb_addr):
-    result = tractor.run(
-        partial(spawn, data=data_to_pass_down),
+    result = trio.run(
+        spawn,
         True,
-        name='arbiter',
-        arbiter_addr=arb_addr,
+        data_to_pass_down,
+        arb_addr,
     )
     assert result == 10
 
@@ -67,7 +75,7 @@ async def test_movie_theatre_convo(start_method):
         portal = await n.start_actor(
             'frank',
             # enable the actor to run funcs from this current module
-            rpc_module_paths=[__name__],
+            enable_modules=[__name__],
         )
 
         print(await portal.run(movie_theatre_question))
@@ -121,19 +129,20 @@ def test_loglevel_propagated_to_subactor(
     level = 'critical'
 
     async def main():
-        async with tractor.open_nursery() as tn:
+        async with tractor.open_nursery(
+            name='arbiter',
+            loglevel=level,
+            start_method=start_method,
+            arbiter_addr=arb_addr,
+
+        ) as tn:
             await tn.run_in_actor(
                 check_loglevel,
                 level=level,
             )
 
-    tractor.run(
-        main,
-        name='arbiter',
-        loglevel=level,
-        start_method=start_method,
-        arbiter_addr=arb_addr,
-    )
+    trio.run(main)
+
     # ensure subactor spits log message on stderr
     captured = capfd.readouterr()
     assert 'yoyoyo' in captured.err
