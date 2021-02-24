@@ -145,7 +145,7 @@ and use the ``run_in_actor()`` method:
 
 What's going on?
 
-- an initial *actor* is started with ``tractor.run()`` and told to execute
+- an initial *actor* is started with ``trio.run()`` and told to execute
   its main task_: ``main()``
 
 - inside ``main()`` an actor is *spawned* using an ``ActorNusery`` and is told
@@ -458,7 +458,7 @@ find an actor's socket address by name use the ``find_actor()`` function:
 .. literalinclude:: ../examples/service_discovery.py
 
 The ``name`` value you should pass to ``find_actor()`` is the one you passed as the
-*first* argument to either ``tractor.run()`` or ``ActorNursery.start_actor()``.
+*first* argument to either ``trio.run()`` or ``ActorNursery.start_actor()``.
 
 
 Running actors standalone
@@ -472,7 +472,17 @@ need to hop into a debugger. You just need to pass the existing
 
 .. code:: python
 
-    tractor.run(main, arbiter_addr=('192.168.0.10', 1616))
+    import trio
+    import tractor
+
+    async def main():
+
+        async with tractor.open_root_actor(
+            arbiter_addr=('192.168.0.10', 1616)
+        ):
+            await trio.sleep_forever()
+
+    trio.run(main)
 
 
 Choosing a process spawning backend
@@ -480,7 +490,7 @@ Choosing a process spawning backend
 ``tractor`` is architected to support multiple actor (sub-process)
 spawning backends. Specific defaults are chosen based on your system
 but you can also explicitly select a backend of choice at startup
-via a ``start_method`` kwarg to ``tractor.run()``.
+via a ``start_method`` kwarg to ``tractor.open_nursery()``.
 
 Currently the options available are:
 
@@ -536,13 +546,14 @@ main python module of the program:
 .. code:: python
 
     # application/__main__.py
+    import trio
     import tractor
     import multiprocessing
     from . import tractor_app
 
     if __name__ == '__main__':
         multiprocessing.freeze_support()
-        tractor.run(tractor_app.main)
+        trio.run(tractor_app.main)
 
 And execute as::
 
