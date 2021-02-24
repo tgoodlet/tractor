@@ -4,7 +4,7 @@ import tractor
 
 async def name_error():
     "Raise a ``NameError``"
-    getattr(doggypants)
+    getattr(doggypants)  # noqa
 
 
 async def breakpoint_forever():

@@ -68,10 +68,11 @@ async def aggregate(seed):
 # this is the main actor and *arbiter*
 async def main():
     # a nursery which spawns "actors"
-    async with tractor.open_nursery() as nursery:
+    async with tractor.open_nursery(
+        arbiter_addr=('127.0.0.1', 1616)
+    ) as nursery:
 
         seed = int(1e3)
-        import time
         pre_start = time.time()
 
         portal = await nursery.start_actor(
@@ -100,4 +101,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    final_stream = tractor.run(main, arbiter_addr=('127.0.0.1', 1616))
+    final_stream = trio.run(main)

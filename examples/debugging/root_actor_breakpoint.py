@@ -4,12 +4,16 @@ import tractor
 
 async def main():
 
-    await trio.sleep(0.1)
+    async with tractor.open_root_actor(
+        debug_mode=True,
+    ):
 
-    await tractor.breakpoint()
+        await trio.sleep(0.1)
 
-    await trio.sleep(0.1)
+        await tractor.breakpoint()
+
+        await trio.sleep(0.1)
 
 
 if __name__ == '__main__':
-    tractor.run(main, debug_mode=True)
+    trio.run(main)

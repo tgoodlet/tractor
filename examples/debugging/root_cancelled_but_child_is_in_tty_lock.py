@@ -1,9 +1,10 @@
+import trio
 import tractor
 
 
 async def name_error():
     "Raise a ``NameError``"
-    getattr(doggypants)
+    getattr(doggypants)  # noqa
 
 
 async def spawn_until(depth=0):
@@ -37,7 +38,10 @@ async def main():
        └─ python -m tractor._child --uid ('name_error', '6c2733b8 ...)
 
     """
-    async with tractor.open_nursery() as n:
+    async with tractor.open_nursery(
+        debug_mode=True,
+        loglevel='warning'
+    ) as n:
 
         # spawn both actors
         portal = await n.run_in_actor(
@@ -58,4 +62,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    tractor.run(main, debug_mode=True, loglevel='warning')
+    trio.run(main)

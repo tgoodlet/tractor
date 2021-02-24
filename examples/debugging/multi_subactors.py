@@ -11,7 +11,7 @@ async def breakpoint_forever():
 
 async def name_error():
     "Raise a ``NameError``"
-    getattr(doggypants)
+    getattr(doggypants)  # noqa
 
 
 async def spawn_error():
@@ -36,7 +36,9 @@ async def main():
     `-python -m tractor._child --uid ('spawn_error', '52ee14a5 ...)
        `-python -m tractor._child --uid ('name_error', '3391222c ...)
     """
-    async with tractor.open_nursery() as n:
+    async with tractor.open_nursery(
+        debug_mode=True,
+    ) as n:
 
         # Spawn both actors, don't bother with collecting results
         # (would result in a different debugger outcome due to parent's
@@ -47,4 +49,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    tractor.run(main, debug_mode=True)
+    trio.run(main)

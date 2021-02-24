@@ -12,7 +12,9 @@ async def breakpoint_forever():
 
 async def main():
 
-    async with tractor.open_nursery() as n:
+    async with tractor.open_nursery(
+        debug_mode=True,
+    ) as n:
 
         portal = await n.run_in_actor(
             breakpoint_forever,
@@ -21,4 +23,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    tractor.run(main, debug_mode=True, loglevel='debug')
+    trio.run(main)

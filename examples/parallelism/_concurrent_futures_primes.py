@@ -10,6 +10,7 @@ PRIMES = [
     115797848077099,
     1099726899285419]
 
+
 def is_prime(n):
     if n < 2:
         return False
@@ -24,6 +25,7 @@ def is_prime(n):
             return False
     return True
 
+
 def main():
     with concurrent.futures.ProcessPoolExecutor() as executor:
         start = time.time()
@@ -32,6 +34,7 @@ def main():
             print('%d is prime: %s' % (number, prime))
 
         print(f'processing took {time.time() - start} seconds')
+
 
 if __name__ == '__main__':
 

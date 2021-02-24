@@ -1,11 +1,15 @@
+import trio
 import tractor
 
 
 async def main():
 
-    while True:
-        await tractor.breakpoint()
+    async with tractor.open_root_actor(
+        debug_mode=True,
+    ):
+        while True:
+            await tractor.breakpoint()
 
 
 if __name__ == '__main__':
-    tractor.run(main, debug_mode=True)
+    trio.run(main)

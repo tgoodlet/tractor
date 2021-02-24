@@ -4,7 +4,7 @@ Demonstration of the prime number detector example from the
 
 https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor-example
 
-This uses no extra threads, fancy semaphores or futures; all we need 
+This uses no extra threads, fancy semaphores or futures; all we need
 is ``tractor``'s channels.
 
 """

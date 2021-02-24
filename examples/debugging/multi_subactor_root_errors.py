@@ -1,9 +1,10 @@
+import trio
 import tractor
 
 
 async def name_error():
     "Raise a ``NameError``"
-    getattr(doggypants)
+    getattr(doggypants)  # noqa
 
 
 async def spawn_error():
@@ -32,7 +33,9 @@ async def main():
         - root actor should then fail on assert
         - program termination
     """
-    async with tractor.open_nursery() as n:
+    async with tractor.open_nursery(
+        debug_mode=True,
+    ) as n:
 
         # spawn both actors
         portal = await n.run_in_actor(
@@ -54,4 +57,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    tractor.run(main, debug_mode=True)
+    trio.run(main)

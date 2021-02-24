@@ -11,7 +11,7 @@ async def breakpoint_forever():
 
 async def name_error():
     "Raise a ``NameError``"
-    getattr(doggypants)
+    getattr(doggypants)  # noqa
 
 
 async def main():

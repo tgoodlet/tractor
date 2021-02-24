@@ -1,3 +1,4 @@
+import trio
 import tractor
 
 _this_module = __name__
@@ -40,4 +41,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    tractor.run(main)
+    trio.run(main)

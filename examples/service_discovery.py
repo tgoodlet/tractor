@@ -1,6 +1,8 @@
+import trio
 import tractor
 
 tractor.log.get_console_log("INFO")
+
 
 async def main(service_name):
 
@@ -17,4 +19,4 @@ async def main(service_name):
 
 
 if __name__ == '__main__':
-    tractor.run(main, 'some_actor_name')
+    trio.run(main, 'some_actor_name')
