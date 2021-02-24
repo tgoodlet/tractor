@@ -16,4 +16,4 @@ if __name__ == '__main__':
     # temporary dir and name it test_example.py. We import that script
     # module here and invoke it's ``main()``.
     from . import test_example
-    test_example.tractor.run(test_example.main, start_method='spawn')
+    test_example.trio.run(test_example.main)
