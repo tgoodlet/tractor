@@ -54,7 +54,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_typlog_theme'
+html_theme = 'sphinx_book_theme'
 
 pygments_style = 'sphinx'
 
@@ -62,19 +62,30 @@ pygments_style = 'sphinx'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'logo': 'tractor_logo_side.svg',
-    'description': 'Structured concurrent "actors"',
-    'github_user': 'goodboy',
-    'github_repo': 'tractor',
+    # 'logo': 'tractor_logo_side.svg',
+    # 'description': 'Structured concurrent "actors"',
+    'repository_url': "https://github.com/goodboy/tractor",
+    'use_repository_button': True,
 }
 html_sidebars = {
     "**": [
-        'logo.html',
-        'github.html',
-        'relations.html',
-        'searchbox.html'
-    ]
+        'globaltoc.html',
+        'sbt-sidebar-nav.html',
+    ],
+    #     'logo.html',
+    #     'github.html',
+    #     'relations.html',
+    #     'searchbox.html'
+    # ]
 }
+
+# doesn't seem to work?
+extra_navbar = "<p>nextttt-gennnnn</p>"
+
+html_title = 'tractor'
+html_logo = '_static/tractor_logo_side.svg'
+html_favicon = '_static/tractor_logo_side.svg'
+show_navbar_depth = 1
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
