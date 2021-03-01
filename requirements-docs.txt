@@ -1,2 +1,2 @@
 sphinx
-sphinx_typlog_theme
+sphinx_book_theme

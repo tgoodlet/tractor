@@ -56,7 +56,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #
 html_theme = 'sphinx_book_theme'
 
-pygments_style = 'sphinx'
+pygments_style = 'algol_nu'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -64,13 +64,18 @@ pygments_style = 'sphinx'
 html_theme_options = {
     # 'logo': 'tractor_logo_side.svg',
     # 'description': 'Structured concurrent "actors"',
-    'repository_url': "https://github.com/goodboy/tractor",
-    'use_repository_button': True,
+    "repository_url": "https://github.com/goodboy/tractor",
+    "use_repository_button": True,
+    "home_page_in_toc": False,
+    "show_toc_level": 1,
+    "path_to_docs": "docs",
+
 }
 html_sidebars = {
     "**": [
-        'globaltoc.html',
-        'sbt-sidebar-nav.html',
+        "sbt-sidebar-nav.html",
+        "sidebar-search-bs.html",
+        # 'localtoc.html',
     ],
     #     'logo.html',
     #     'github.html',
@@ -80,12 +85,12 @@ html_sidebars = {
 }
 
 # doesn't seem to work?
-extra_navbar = "<p>nextttt-gennnnn</p>"
+# extra_navbar = "<p>nextttt-gennnnn</p>"
 
-html_title = 'tractor'
+html_title = ''
 html_logo = '_static/tractor_logo_side.svg'
 html_favicon = '_static/tractor_logo_side.svg'
-show_navbar_depth = 1
+# show_navbar_depth = 1
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

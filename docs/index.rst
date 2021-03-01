@@ -3,12 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-tractor
-=======
+``tractor``
+===========
+
 A `structured concurrent`_, async-native "`actor model`_" built on trio_ and multiprocessing_.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
 .. _actor model: https://en.wikipedia.org/wiki/Actor_model
@@ -57,8 +58,6 @@ say hi, please feel free to ping me on the `trio gitter channel`_!
 
 .. _trio gitter channel: https://gitter.im/python-trio/general
 
-
-.. contents::
 
 
 Philosophy
