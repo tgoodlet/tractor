@@ -61,12 +61,17 @@ class ActorNursery:
         loglevel: str = None,  # set log level per subactor
         nursery: trio.Nursery = None,
         infect_asyncio: bool = False,
+        debug_mode: Optional[bool] = None,
     ) -> Portal:
         loglevel = loglevel or self._actor.loglevel or get_loglevel()
 
         # configure and pass runtime state
         _rtv = _state._runtime_vars.copy()
         _rtv['_is_root'] = False
+
+        # allow setting debug policy per actor
+        if debug_mode is not None:
+            _rtv['_debug_mode'] = debug_mode
 
         enable_modules = enable_modules or []
 
