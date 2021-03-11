@@ -13,7 +13,7 @@
 
 ``tractor`` is a `structured concurrent`_ "`actor model`_" built on trio_ and multi-processing_.
 
-We pair structured concurrency and true multi-core parallelism with
+We pair `structured concurrency`_ and true multi-core parallelism with
 the aim of being the multi-processing framework *you always wanted*.
 
 The first step to grok ``tractor`` is to get the basics of ``trio`` down.
@@ -285,7 +285,7 @@ channel`_!
 .. _messages: https://en.wikipedia.org/wiki/Message_passing
 .. _trio docs: https://trio.readthedocs.io/en/latest/
 .. _blog post: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
-.. _structured concurrency: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
+.. _structured concurrency: https://en.wikipedia.org/wiki/Structured_concurrency
 .. _3 axioms: https://en.wikipedia.org/wiki/Actor_model#Fundamental_concepts
 .. _unrequirements: https://en.wikipedia.org/wiki/Actor_model#Direct_communication_and_asynchrony
 .. _async generators: https://www.python.org/dev/peps/pep-0525/
