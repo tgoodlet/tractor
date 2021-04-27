@@ -15,10 +15,16 @@ _runtime_vars: Dict[str, Any] = {
 }
 
 
-def current_actor(err_on_no_runtime: bool = True) -> 'Actor':  # type: ignore # noqa
+def current_actor(
+    err_on_no_runtime: bool = True,
+    # due_to_logging: bool = False,
+) -> 'Actor':  # type: ignore # noqa
     """Get the process-local actor instance.
     """
     if _current_actor is None and err_on_no_runtime:
+        # if not due_to_logging:
+        #     print('uhhhh')
+        #     breakpoint()
         raise RuntimeError("No local actor has been initialized yet")
 
     return _current_actor
@@ -42,6 +48,9 @@ class ActorContextInfo(Mapping):
 
     def __getitem__(self, key: str) -> str:
         try:
+            # if key == 'actor':
+            #     return _conc_name_getters[key](due_to_logging=True).name  # type: ignore
+            # else:
             return _conc_name_getters[key]().name  # type: ignore
         except RuntimeError:
             # no local actor/task context initialized yet
