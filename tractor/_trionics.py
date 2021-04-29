@@ -132,7 +132,9 @@ class ActorNursery:
 
         portal = await self.start_actor(
             name,
-            enable_modules=[mod_path] + (enable_modules or rpc_module_paths or []),
+            enable_modules=[mod_path] + (
+                enable_modules or rpc_module_paths or []
+            ),
             bind_addr=bind_addr,
             loglevel=loglevel,
             # use the run_in_actor nursery
@@ -367,7 +369,6 @@ async def open_nursery(
                 async with _open_and_supervise_one_cancels_all_nursery(
                     actor
                 ) as anursery:
-
                     yield anursery
 
         else:  # sub-nursery case
