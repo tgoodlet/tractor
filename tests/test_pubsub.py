@@ -238,7 +238,6 @@ def test_multi_actor_subs_arbiter_pub(
                 assert 'even' not in get_topics()
 
             await odd_portal.cancel_actor()
-            await trio.sleep(2)
 
             if pub_actor == 'arbiter':
                 while get_topics():
