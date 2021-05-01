@@ -312,11 +312,20 @@ class Portal:
 
         ctx = Context(self.channel, cid, _portal=self)
         try:
-            async with ReceiveMsgStream(ctx, recv_chan, self) as rchan:
+            # deliver receive only stream
+            async with ReceiveMsgStream(ctx, recv_chan) as rchan:
                 self._streams.add(rchan)
                 yield rchan
+
         finally:
+
             # cancel the far end task on consumer close
+            # NOTE: this is a special case since we assume that if using
+            # this ``.open_fream_from()`` api, the stream is one a one
+            # time use and we couple the far end tasks's lifetime to
+            # the consumer's scope; we don't ever send a `'stop'`
+            # message right now since there shouldn't be a reason to
+            # stop and restart the stream, right?
             try:
                 await ctx.cancel()
             except trio.ClosedResourceError:
@@ -326,16 +335,55 @@ class Portal:
 
             self._streams.remove(rchan)
 
-    # @asynccontextmanager
-    # async def open_context(
-    #     self,
-    #     func: Callable,
-    #     **kwargs,
-    # ) -> Context:
-    #     # TODO
-    #     elif resptype == 'context':  # context manager style setup/teardown
-    #         # TODO likely not here though
-    #         raise NotImplementedError
+    @asynccontextmanager
+    async def open_context(
+        self,
+        func: Callable,
+        **kwargs,
+    ) -> Context:
+        """Open an inter-actor task context.
+
+        This is a synchronous API which allows for deterministic
+        setup/teardown of a remote task. The yielded ``Context`` further
+        allows for opening bidirectional streams - see
+        ``Context.open_stream()``.
+
+        """
+        # conduct target func method structural checks
+        if not inspect.iscoroutinefunction(func) and (
+            getattr(func, '_tractor_contex_function', False)
+        ):
+            raise TypeError(
+                f'{func} must be an async generator function!')
+
+        fn_mod_path, fn_name = func_deats(func)
+
+        cid, recv_chan, functype, first_msg = await self._submit(
+            fn_mod_path, fn_name, kwargs)
+
+        assert functype == 'context'
+
+        msg = await recv_chan.receive()
+        try:
+            # the "first" value here is delivered by the callee's
+            # ``Context.started()`` call.
+            first = msg['started']
+
+        except KeyError:
+            assert msg.get('cid'), ("Received internal error at context?")
+
+            if msg.get('error'):
+                # raise the error message
+                raise unpack_error(msg, self.channel)
+            else:
+                raise
+        try:
+            ctx = Context(self.channel, cid, _portal=self)
+            yield ctx, first
+
+        finally:
+            await recv_chan.aclose()
+            await ctx.cancel()
 
 
 @dataclass

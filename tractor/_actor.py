@@ -14,6 +14,7 @@ from types import ModuleType
 import sys
 import os
 from contextlib import ExitStack
+import warnings
 
 import trio  # type: ignore
 from trio_typing import TaskStatus
@@ -57,12 +58,36 @@ async def _invoke(
     treat_as_gen = False
     cs = None
     cancel_scope = trio.CancelScope()
-    ctx = Context(chan, cid, cancel_scope)
+    ctx = Context(chan, cid, _cancel_scope=cancel_scope)
+    context = False
 
     if getattr(func, '_tractor_stream_function', False):
         # handle decorated ``@tractor.stream`` async functions
+        sig = inspect.signature(func)
+        params = sig.parameters
+
+        # compat with old api
         kwargs['ctx'] = ctx
+
+        if 'ctx' in params:
+            warnings.warn(
+                "`@tractor.stream decorated funcs should now declare "
+                "a `stream`  arg, `ctx` is now designated for use with "
+                "@tractor.context",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        elif 'stream' in params:
+            assert 'stream' in params
+            kwargs['stream'] = ctx
+
         treat_as_gen = True
+
+    elif getattr(func, '_tractor_context_function', False):
+        # handle decorated ``@tractor.context`` async function
+        kwargs['ctx'] = ctx
+        context = True
 
     # errors raised inside this block are propgated back to caller
     try:
@@ -101,26 +126,41 @@ async def _invoke(
             # `StopAsyncIteration` system here for returning a final
             # value if desired
             await chan.send({'stop': True, 'cid': cid})
+
+        # one way @stream func that gets treated like an async gen
+        elif treat_as_gen:
+            await chan.send({'functype': 'asyncgen', 'cid': cid})
+            # XXX: the async-func may spawn further tasks which push
+            # back values like an async-generator would but must
+            # manualy construct the response dict-packet-responses as
+            # above
+            with cancel_scope as cs:
+                task_status.started(cs)
+                await coro
+
+            if not cs.cancelled_caught:
+                # task was not cancelled so we can instruct the
+                # far end async gen to tear down
+                await chan.send({'stop': True, 'cid': cid})
+
+        elif context:
+            # context func with support for bi-dir streaming
+            await chan.send({'functype': 'context', 'cid': cid})
+
+            with cancel_scope as cs:
+                task_status.started(cs)
+                await chan.send({'return': await coro, 'cid': cid})
+
+            # if cs.cancelled_caught:
+            #     # task was cancelled so relay to the cancel to caller
+            #     await chan.send({'return': await coro, 'cid': cid})
+
         else:
-            if treat_as_gen:
-                await chan.send({'functype': 'asyncgen', 'cid': cid})
-                # XXX: the async-func may spawn further tasks which push
-                # back values like an async-generator would but must
-                # manualy construct the response dict-packet-responses as
-                # above
-                with cancel_scope as cs:
-                    task_status.started(cs)
-                    await coro
-                if not cs.cancelled_caught:
-                    # task was not cancelled so we can instruct the
-                    # far end async gen to tear down
-                    await chan.send({'stop': True, 'cid': cid})
-            else:
-                # regular async function
-                await chan.send({'functype': 'asyncfunc', 'cid': cid})
-                with cancel_scope as cs:
-                    task_status.started(cs)
-                    await chan.send({'return': await coro, 'cid': cid})
+            # regular async function
+            await chan.send({'functype': 'asyncfunc', 'cid': cid})
+            with cancel_scope as cs:
+                task_status.started(cs)
+                await chan.send({'return': await coro, 'cid': cid})
 
     except (Exception, trio.MultiError) as err:
 
@@ -404,10 +444,10 @@ class Actor:
         send_chan, recv_chan = self._cids2qs[(actorid, cid)]
         assert send_chan.cid == cid  # type: ignore
 
-        if 'stop' in msg:
-            log.debug(f"{send_chan} was terminated at remote end")
-            # indicate to consumer that far end has stopped
-            return await send_chan.aclose()
+        # if 'stop' in msg:
+        #     log.debug(f"{send_chan} was terminated at remote end")
+        #     # indicate to consumer that far end has stopped
+        #     return await send_chan.aclose()
 
         try:
             log.debug(f"Delivering {msg} from {actorid} to caller {cid}")
@@ -415,6 +455,12 @@ class Actor:
             await send_chan.send(msg)
 
         except trio.BrokenResourceError:
+            # TODO: what is the right way to handle the case where the
+            # local task has already sent a 'stop' / StopAsyncInteration
+            # to the other side but and possibly has closed the local
+            # feeder mem chan? Do we wait for some kind of ack or just
+            # let this fail silently and bubble up (currently)?
+
             # XXX: local consumer has closed their side
             # so cancel the far end streaming task
             log.warning(f"{send_chan} consumer is already closed")
@@ -494,6 +540,7 @@ class Actor:
                     if cid:
                         # deliver response to local caller/waiter
                         await self._push_result(chan, cid, msg)
+
                         log.debug(
                             f"Waiting on next msg for {chan} from {chan.uid}")
                         continue
