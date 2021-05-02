@@ -5,7 +5,7 @@ tractor: An actor model micro-framework built on
 from trio import MultiError
 
 from ._ipc import Channel
-from ._streaming import Context, stream
+from ._streaming import Context, stream, context
 from ._discovery import get_arbiter, find_actor, wait_for_actor
 from ._trionics import open_nursery
 from ._state import current_actor, is_root_process
@@ -33,7 +33,7 @@ __all__ = [
     'run',
     'run_daemon',
     'stream',
-    'wait_for_actor',
+    'context',
     'to_asyncio',
     'wait_for_actor',
 ]
