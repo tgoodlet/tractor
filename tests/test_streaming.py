@@ -338,6 +338,8 @@ async def test_respawn_consumer_task(
                         print("all values streamed, BREAKING")
                         break
 
+                cs.cancel()
+
         # TODO: this is justification for a
         # ``ActorNursery.stream_from_actor()`` helper?
         await portal.cancel_actor()
