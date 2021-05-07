@@ -1,7 +1,15 @@
+"""
+Message stream types and APIs.
+
+"""
 import inspect
 from contextlib import contextmanager, asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Iterator, Optional, Callable
+from typing import (
+    Any, Iterator, Optional, Callable,
+    AsyncGenerator,
+)
+
 import warnings
 
 import trio
@@ -288,7 +296,7 @@ class Context:
     async def open_stream(
         self,
         shield: bool = False,
-    ) -> MsgStream:
+    ) -> AsyncGenerator[MsgStream, None]:
         # TODO
 
         actor = current_actor()
@@ -339,7 +347,9 @@ def stream(func: Callable) -> Callable:
 
     """
     # annotate
-    func._tractor_stream_function = True
+    # TODO: apply whatever solution ``mypy`` ends up picking for this:
+    # https://github.com/python/mypy/issues/2087#issuecomment-769266912
+    func._tractor_stream_function = True  # type: ignore
 
     sig = inspect.signature(func)
     params = sig.parameters
@@ -369,7 +379,9 @@ def context(func: Callable) -> Callable:
 
     """
     # annotate
-    func._tractor_context_function = True
+    # TODO: apply whatever solution ``mypy`` ends up picking for this:
+    # https://github.com/python/mypy/issues/2087#issuecomment-769266912
+    func._tractor_context_function = True  # type: ignore
 
     sig = inspect.signature(func)
     params = sig.parameters

@@ -340,7 +340,7 @@ class Portal:
         self,
         func: Callable,
         **kwargs,
-    ) -> Context:
+    ) -> AsyncGenerator[Tuple[Context, Any], None]:
         """Open an inter-actor task context.
 
         This is a synchronous API which allows for deterministic
